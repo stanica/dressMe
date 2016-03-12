@@ -106,8 +106,6 @@ function handleRandomIntent(intent, session, callback) {
     var shouldEndSession  = false;
     var randomIntent      = intent.slots.Intent
 
-    console.log(randomIntent.value)
-
     callback(
         sessionAttributes,
         buildSpeechletResponse(
@@ -202,8 +200,6 @@ function handleDressMe(situation, description, intent, session, callback) {
                             "H and M tank top and your brown Banana Republic " +
                             "shorts.";
 
-    console.log(situation, description);
-
     callback(
         sessionAttributes,
         buildSpeechletResponse(
@@ -218,7 +214,6 @@ function handleListAllClothes(intent, session, callback) {
     var shouldEndSession = false;
     var speechOutput = "";
 
-    console.log(sessionAttributes.clothes);
     var l = sessionAttributes.clothes.length;
     if (l != 0) {
         for (var i = 0; i < l; i++) {
@@ -243,8 +238,6 @@ function handleAddClothes(intent, session, callback) {
 
     var speechOutput = "I have added your clothes. Color is " + parsedClothesInfo.color + ". Article type is " + parsedClothesInfo.article + ". Description is " + parsedClothesInfo.description.join(" ") + ".";
     sessionAttributes.clothes.push(intent.slots.Clothes.value);
-    console.log(sessionAttributes);
-
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
     // will end.
