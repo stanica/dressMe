@@ -76,7 +76,7 @@ var parse = function (text){
   
   return {
     'color': color,
-    'description': description.split(" ");
+    'description': description.split(" "),
     'article': article
   }
 }
