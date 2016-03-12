@@ -28,21 +28,24 @@ exports.handler = function (event, context) {
  * Called when the user specifies an intent for this skill.
  */
 function onIntent(intentRequest, session, callback) {
-    session.attributes                = getSessionAttributes(session);
-    session.attributes.expectedIntent = sessionAttributes.nextIntent;
-    session.attributes.nextIntent     = null;
+    var intent = intentRequest.intent,
+        intentName = intentRequest.intent.name;
+
+    if (!session.attributes) session.attributes = {};
+    session.attributes.expectedIntent = session.attributes.nextIntent;
+    session.attributes.nextIntent = null;
 
     switch (intentRequest.intent.name) {
         case "RandomIntent":
-            handleRandomIntent(IntentRequest.intent, session, callback);
+            handleRandomIntent(intent, session, callback);
             break;
 
         case "SetName":
-            setName(IntentRequest.intent, session, callback);
+            setName(intent, session, callback);
             break;
 
         case "GetSelfInfo":
-            getSelfInfo(IntentRequest.intent, session, callback);
+            getSelfInfo(intent, session, callback);
             break;
 
         case "DressMeDefault":
@@ -57,6 +60,14 @@ function onIntent(intentRequest, session, callback) {
         case "DressMeDescription":
             handleDressMe("normal", intent.slots.Description.value,  intent,
                           session, callback);
+            break;
+
+        case "AddClothes":
+            handleAddClothes(intent, session, callback);
+            break;
+
+        case "ListAllClothes":
+            handleListAllClothes(intent, session, callback);
             break;
 
         case "AMAZON.HelpIntent":
@@ -201,20 +212,60 @@ function handleDressMe(situation, description, intent, session, callback) {
     );
 }
 
-// --------------- Helper functions -----------------------
+function handleListAllClothes(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "";
 
+    console.log(sessionAttributes.clothes);
+    var l = sessionAttributes.clothes.length;
+    if (l != 0) {
+        for (var i = 0; i < l; i++) {
+            var clothes = sessionAttributes.clothes[i];
+            speechOutput += "<say-as interpret-as=\"ordinal\">" + (i+1) + "</say-as> " + clothes + ". ";
+        }
+    } else {
+        speechOutput = "I don't have any of your clothes.";
+    }
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
+function handleAddClothes(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "I have added your clothes";
+
+    sessionAttributes.clothes.push(intent.slots.Clothes.value);
+    console.log(sessionAttributes);
+
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
+// --------------- Helper functions -----------------------
 function getSessionAttributes(session) {
     var attributes = session.attributes;
     if (!attributes) attributes = {};
     if (typeof attributes.info === "undefined") attributes.info = {};
+    if (typeof attributes.clothes === "undefined") attributes.clothes = [];
     return attributes;
 }
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
+    output = "<speak>" + output + "</speak>";
     return {
         outputSpeech: {
-            type: "PlainText",
-            text: output
+            type: "SSML",
+            ssml: output
         },
         card: {
             type: "Simple",
@@ -238,4 +289,3 @@ function buildResponse(sessionAttributes, speechletResponse) {
         response: speechletResponse
     };
 }
-
