@@ -281,14 +281,15 @@ function handleListAllClothes(intent, session, callback) {
     var shouldEndSession = false;
     var speechOutput = "";
 
-    var l = sessionAttributes.clothes.count;
-    if (l == 0) {
+    console.log(sessionAttributes.clothes);
+    var l = sessionAttributes.clothes.length;
+    if (l != 0) {
         for (var i = 0; i < l; i++) {
             var clothes = sessionAttributes.clothes[i];
-            speechOutput += (i+1) + " " + clothes + ". ";
+            speechOutput += "<say-as interpret-as=\"ordinal\">" + (i+1) + "</say-as> " + clothes + ". ";
         }
     } else {
-        speechOutput = "I don't any of your clothes.";
+        speechOutput = "I don't have any of your clothes.";
     }
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
@@ -304,6 +305,7 @@ function handleAddClothes(intent, session, callback) {
     var speechOutput = "I have added your clothes";
 
     sessionAttributes.clothes.push(intent.slots.Clothes.value);
+    console.log(sessionAttributes);
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
@@ -329,10 +331,11 @@ function getSessionAttributes(session) {
 // --------------- Helpers that build all of the responses -----------------------
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
+    output = "<speak>" + output + "</speak>";
     return {
         outputSpeech: {
-            type: "PlainText",
-            text: output
+            type: "SSML",
+            ssml: output
         },
         card: {
             type: "Simple",
