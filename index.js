@@ -96,8 +96,10 @@ function onIntent(intentRequest, session, callback) {
         handleDressMeDefault(intent, session, callback);
     } else if ("DressMeSituation" === intentName) {
         handleDressMeSituation(intent, session, callback);
-    }else if ("DressMeDescription" === intentName) {
+    } else if ("DressMeDescription" === intentName) {
         handleDressMeDescription(intent, session, callback);
+    } else if ("AddClothes" === intentName) {
+        handleAddClothes(intent, session, callback);
     } else if ("AMAZON.HelpIntent" === intentName) {
         getWelcomeResponse(callback);
     } else {
@@ -271,6 +273,18 @@ function handleDressMe(situation, description, intent, session, callback) {
          buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
 }
 
+function handleAddClothes(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "I have added your clothes";
+
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
 
 function getSessionAttributes(session) {
   var attributes = session.attributes;
