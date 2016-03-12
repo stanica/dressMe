@@ -111,35 +111,35 @@ function handleRandomIntent(intent, session, callback) {
 function setName(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var cardTitle         = intent.name;
-    var repromptText      = "";
+    var repromptText      = "I'm not sure what your favorite color is. You " +
+                            "can tell me your favorite color by saying, my " +
+                            "favorite color is red";
+    var speechOutput      = "I'm not sure what your favorite color is. " +
+                            "Please try again";
     var shouldEndSession  = false;
-    var speechOutput      = "";
 
-    if (intent.slots.Name) {
-        sessionAttributes.info.name = intent.slots.Name.value;
-
-        if (sessionAttributes.info.color) {
-            speechOutput = "Say Dress me or add new clothes";
-            repromptText = "Add clothes";
-        } else {
-            speechOutput = "What is your favorite color?";
-            repromptText = "You can tell me your favorite color by saying, " +
-                           "my favorite color is red";
-        }
-
-    } else {
-        speechOutput = "I'm not sure what your favorite color is. Please try " +
-                       "again";
-        repromptText = "I'm not sure what your favorite color is. You can " +
-                       "tell me your favorite color by saying, my favorite " +
-                       "color is red";
-    }
-
-    callback(
+    if (!intent.slot.Name) callback(
         sessionAttributes,
         buildSpeechletResponse(
             cardTitle, speechOutput, repromptText, shouldEndSession
         )
+    );
+
+    if (sessionAttributes.info.color) {
+        speechOutput = "Say Dress me or add new clothes";
+        repromptText = "Add clothes";
+    } else {
+        speechOutput = "What is your favorite color?";
+        repromptText = "You can tell me your favorite color by saying, " +
+                       "my favorite color is red";
+    }
+
+    sessionAttributes.info.name = intent.slots.Name.value;
+    callback(
+         sessionAttributes,
+         buildSpeechletResponse(
+             cardTitle, speechOutput, repromptText, shouldEndSession
+         )
     );
 }
 
