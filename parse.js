@@ -21,15 +21,15 @@ var clothes = {
 	'halter top': ["top", "casual", 20, 45],
 	'tube top': ["top", "casual", 20, 45],
 	'sports bra': ["top", "casual", 30, 45],
-	
-	
+
+
 	//layer1
 	'sweater': ["top", "semi-formal", 0, 10],
 	'poncho': ["top", "casual", 30, 45],
 	'sweater vest': ["top", "semi formal", 10, 20],
 	'vest': ["top", "formal", 10, 20],
 	'cardigan': ["top", "semi-formal", 0, 20],
-	
+
 	//bottom
 	'jeans': ["bottom", "casual", -30, 20],
 	'mini skirt': ["bottom", "casual", 20, 30],
@@ -46,21 +46,21 @@ var clothes = {
 	'snow pants': ["bottom", "casual", -30, -20],
 	'track pants': ["bottom", "casual", 10, 30],
 	'dress pants': ["bottom", -10, 30],
-	
+
 	//all
 	'dress': ["all", "formal", -20, 20],
 	'short dress': ["all", "semi formal", 0, 20],
 	'gown': ["all", "formal", -30, 20],
 }
 
-var parse = function (text){
+function parseClothes(text){
   var color, description, article;
   var parsedText = text.split(" ");
     if (colorQualifiers.indexOf(parsedText[0]) > -1)
-      color = parsedText[0] + " "  + parsedText[1];   
-    else 
+      color = parsedText[0] + " "  + parsedText[1];
+    else
       color = parsedText[0];
-  
+
     if(clothes.hasOwnProperty(parsedText[parsedText.length - 4] + " " + parsedText[parsedText.length - 3] + " " + parsedText[parsedText.length - 2] + " " + parsedText[parsedText.length - 1]))
       article = parsedText[parsedText.length - 4] + " " + parsedText[parsedText.length - 3] + " " + parsedText[parsedText.length - 2] + " " + parsedText[parsedText.length - 1];
     else if(clothes.hasOwnProperty(parsedText[parsedText.length - 3] + " " + parsedText[parsedText.length - 2] + " " + parsedText[parsedText.length - 1]))
@@ -71,9 +71,9 @@ var parse = function (text){
       article = parsedText[parsedText.length - 1];
     else
       article = "Error";
-    
+
     description = parsedText.slice(color.split(" ").length, parsedText.length - article.split(" ").length).join(" ");
-  
+
   return {
     'color': color,
     'description': description.split(" "),
