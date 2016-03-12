@@ -6,12 +6,11 @@ var install = require('gulp-install');
 var zip = require('gulp-zip');
 var AWS = require('aws-sdk');
 var fs = require('fs');
-var runSequence = require('run-sequence');
 
 // First we need to clean out the dist folder and remove the compiled zip file.
 gulp.task('clean', function(cb) {
-  del('./dist',
-    del('./archive.zip', cb)
+  return del('./dist',
+    del('./dist.zip', cb)
   );
 });
 
@@ -26,13 +25,6 @@ gulp.task('npm', function() {
   gulp.src('./package.json')
     .pipe(gulp.dest('./dist/'))
     .pipe(install({production: true}));
-});
-
-// Next copy over environment variables managed outside of source control.
-gulp.task('env', function() {
-  gulp.src('./config.env.production')
-    .pipe(rename('.env'))
-    .pipe(gulp.dest('./dist'))
 });
 
 // Now the dist directory is ready to go. Zip it.
@@ -69,22 +61,17 @@ gulp.task('upload', function() {
       }
     }
 
-    // This is a bit silly, simply because these five parameters are required.
-    var current = data.Configuration;
     var params = {
       FunctionName: functionName,
-      Handler: current.Handler,
-      Mode: current.Mode,
-      Role: current.Role,
-      Runtime: current.Runtime
+      Publish: true
     };
 
     fs.readFile('./dist.zip', function(err, data) {
-      params['FunctionZip'] = data;
-      lambda.uploadFunction(params, function(err, data) {
+      params['ZipFile'] = data;
+      lambda.updateFunctionCode(params, function(err, data) {
         if (err) {
           var warning = 'Package upload failed. '
-          warning += 'Check your iam:PassRole permissions.'
+          warning += err.message;
           gutil.log(warning);
         }
       });
@@ -93,12 +80,4 @@ gulp.task('upload', function() {
 });
 
 // The key to deploying as a single command is to manage the sequence of events.
-gulp.task('default', function(callback) {
-  return runSequence(
-    ['clean'],
-    ['js', 'npm', 'env'],
-    ['zip'],
-    ['upload'],
-    callback
-  );
-});
+gulp.task('default', ['clean', 'js', 'npm', 'zip', 'upload']);
