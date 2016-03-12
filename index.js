@@ -77,8 +77,16 @@ function onIntent(intentRequest, session, callback) {
     var intent = intentRequest.intent,
         intentName = intentRequest.intent.name;
 
+    if (!session.attributes) {
+        session.attributes = {};
+    }
+    session.attributes.expectedIntent = session.attributes.nextIntent;
+    session.attributes.nextIntent = null;
+
     // Dispatch to your skill's intent handlers
-    if ("SetFavoriteColor" === intentName) {
+    if ("RandomIntent" === intentName) {
+        handleRandomIntent(intent, session, callback);
+    } else if ("SetFavoriteColor" === intentName) {
         handleSetFavoriteColor(intent, session, callback);
     } else if ("SetName" === intentName) {
         handleSetName(intent, session, callback);
@@ -113,8 +121,7 @@ function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     var sessionAttributes = {};
     var cardTitle = "Welcome";
-    var speechOutput = "Hello, I am your stylist. " +
-        "Please tell me your name and favorite color";
+    var speechOutput = "Hello, I am your stylist. ";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
     var repromptText = "Please tell me your favorite color by saying, " +
@@ -150,6 +157,22 @@ function handleSetFavoriteColor(intent, session, callback) {
         repromptText = "I'm not sure what your favorite color is. You can tell me your " +
             "favorite color by saying, my favorite color is red";
     }
+
+    callback(sessionAttributes,
+         buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+}
+
+function handleRandomIntent(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var cardTitle = intent.name;
+    var nameSlot = intent.slots.Name;
+    var repromptText = "";
+    var shouldEndSession = false;
+    var speechOutput = "";
+    var randomIntent = intent.slots.Intent
+    console.log(randomIntent.value)
+
+    speechOutput = "Echo " + randomIntent.value;
 
     callback(sessionAttributes,
          buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
@@ -238,6 +261,7 @@ function handleDressMe(situation, description, intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
     var shouldEndSession = false;
+    console.log(situation, description);
     var speechOutput = "It is 22 degrees outside. Clothes for " + situation + " and " + description + " are white H and M tank top and your brown Banana Republic shorts.";
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
