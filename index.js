@@ -84,6 +84,8 @@ function onIntent(intentRequest, session, callback) {
         handleSetName(intent, session, callback);
     } else if ("GetSelfInfo" === intentName) {
         handleGetSelfInfo(intent, session, callback);
+    } else if ("DressMeDefault" === intentName) {
+        handleDressMeDefault(intent, session, callback);
     } else if ("DressMeSituation" === intentName) {
         handleDressMeSituation(intent, session, callback);
     }else if ("DressMeDescription" === intentName) {
@@ -214,24 +216,29 @@ function handleGetSelfInfo(intent, session, callback) {
          buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
 }
 
+function handleDressMeDefault(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+
+    handleDressMe("normal", "normal",  intent, session, callback);
+}
+
 function handleDressMeSituation(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
-    var repromptText = null;
-    var shouldEndSession = false;
-    var speechOutput = "It is 22 degrees outside. Wear your white H and M tank top and your brown Banana Republic shorts.";
 
-    // Setting repromptText to null signifies that we do not want to reprompt the user.
-    // If the user does not respond or says something that is not understood, the session
-    // will end.
-    callback(sessionAttributes,
-         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+    handleDressMe(intent.slots.Situation.value, "normal",  intent, session, callback);
 }
 
 function handleDressMeDescription(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
+
+    handleDressMe("normal", intent.slots.Description.value,  intent, session, callback);
+}
+
+function handleDressMe(situation, description, intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
     var shouldEndSession = false;
-    var speechOutput = "It is 22 degrees outside. Wear your white H and M tank top and your brown Banana Republic shorts.";
+    var speechOutput = "It is 22 degrees outside. Clothes for " + situation + " and " + description + " are white H and M tank top and your brown Banana Republic shorts.";
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
