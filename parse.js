@@ -58,7 +58,7 @@ var clothes = {
 }
 
 function parseClothes(text){
-  text = text.toLowerCase();
+  text = text.toLowerCase().replace('.', '');
   var color, description, article;
   var parsedText = text.split(" ");
     if (colorQualifiers.indexOf(parsedText[0]) > -1)
