@@ -218,7 +218,7 @@ function handleDressMeSituation(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
     var shouldEndSession = false;
-    var speechOutput = "It’s 22 degrees outside. Wear your white H&M tank top and your brown Banana Republic shorts.";
+    var speechOutput = "It is 22 degrees outside. Wear your white H and M tank top and your brown Banana Republic shorts.";
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
@@ -231,7 +231,7 @@ function handleDressMeDescription(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
     var shouldEndSession = false;
-    var speechOutput = "It’s 22 degrees outside. Wear your white H&M tank top and your brown Banana Republic shorts.";
+    var speechOutput = "It is 22 degrees outside. Wear your white H and M tank top and your brown Banana Republic shorts.";
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
