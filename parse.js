@@ -2,58 +2,63 @@ var colorQualifiers = ["light", "dark", "pale"];
 
 var clothes = {
 	//top
-	'tank top': ["top", "casual", 20, 45],
-	't shirt': ["top", "casual", 20, 45],
-	'tee': ["top", "casual", 20, 45],
-  'long sleeve shirt': ["top", "casual", 10, 20],
-	'long sleeves shirt': ["top", "casual", 10, 20],
-  'long sleeved shirt': ["top", "casual", 10, 20],
-  'long sleeve dress shirt': ["top", "casual", 10, 20],
-  'long sleeves dress shirt': ["top", "casual", 10, 20],
-  'long sleeved dress shirt': ["top", "casual", 10, 20],
-	'blouse': ["top", "semi formal", 10, 20],
-	'sweater': ["top", "semi formal", 0, 10],
-	'sweatshirt': ["top", "casual", 10, 20],
+	'tank top': ["top",  20, 45],
+	't shirt': ["top", 20, 45],
+	'tee': ["top", 20, 45],
+	'long sleeves shirt': ["top", 10, 20],
+	'long sleeve shirt': ["top", 10, 20],
+	'long sleeved shirt': ["top", 10, 20],
+	'long sleeve dress shirt': ["top", 10, 20],
+	'long sleeves dress shirt': ["top", 10, 20],
+	'long sleeved dress shirt': ["top", 10, 20],
+	'blouse': ["top", 10, 20],
+	'sweater': ["top", 0, 10],
+	'sweatshirt': ["top", 10, 20],
 	'dress shirt': ["top", "formal", -30, 20],
-	'dress t shirt': ["top", "semi formal", 20, 45],
-	'polo': ["top", "semi-formal", 20, 45],
-	'crop top': ["top", "casual", 20, 45],
-	'halter top': ["top", "casual", 20, 45],
-	'tube top': ["top", "casual", 20, 45],
-	'sports bra': ["top", "casual", 30, 45],
-
-
+	'dress T shirt': ["top", 20, 45],
+	'polo': ["top", 20, 45],
+	'crop top': ["top", 20, 45],
+	'halter top': ["top", 20, 45],
+	'tube top': ["top", 20, 45],
+	'sports bra': ["top", 30, 45],
+	
 	//layer1
 	'sweater': ["top", "semi-formal", 0, 10],
 	'poncho': ["top", "casual", 30, 45],
 	'sweater vest': ["top", "semi formal", 10, 20],
 	'vest': ["top", "formal", 10, 20],
 	'cardigan': ["top", "semi-formal", 0, 20],
-
+	
 	//bottom
-	'jeans': ["bottom", "casual", -30, 20],
-	'mini skirt': ["bottom", "casual", 20, 30],
-	'skirt': ["bottom", "semi formal", 10, 20],
-	'pants': ["bottom", "semi formal", -30, 20],
-	'trousers': ["bottom", "semi formal", -30, 20],
-	'slacks': ["bottom","casual", 0, 20],
-	'shorts': ["bottom", "casual", 20, 45],
-	'dress pants': ["bottom", "formal", 0, 20],
-	'capri pants': ["bottom", "casual", 0, 20],
-	'overalls': ["bottom", "casual", -30, 0],
-	'yoga pants': ["bottom", "casual", 10, 20],
-	'leather pants': ["bottom", "casual", 0, 10],
-	'snow pants': ["bottom", "casual", -30, -20],
-	'track pants': ["bottom", "casual", 10, 30],
+	'jeans': ["bottom", -30, 20],
+	'mini skirt': ["bottom", 20, 30],
+	'skirt': ["bottom", 10, 20],
+	'pants': ["bottom", -30, 20],
+	'trousers': ["bottom", -30, 20],
+	'slacks': ["bottom", 0, 20],
+	'shorts': ["bottom", 20, 45],
+	'dress pants': ["bottom", 0, 20],
+	'capri pants': ["bottom", 0, 20],
+	'overalls': ["bottom", -30, 0],
+	'yoga pants': ["bottom", 10, 20],
+	'leather pants': ["bottom", 0, 10],
+	'snow pants': ["bottom", -30, -20],
+	'track pants': ["bottom", 10, 30],
 	'dress pants': ["bottom", -10, 30],
+	'sweatpants': ["bottom", 10, 30],
+	'sweats': ["bottom", 10, 30],
 
 	//all
-	'dress': ["all", "formal", -20, 20],
-	'short dress': ["all", "semi formal", 0, 20],
-	'gown': ["all", "formal", -30, 20],
+	'dress': ["all", -20, 20],
+  'sundress': ["all", -20, 20],
+  'slip dress': ["all", -20, 20],
+  'strapless dress': ["all", -20, 20],
+	'short dress': ["all", 0, 20],
+	'gown': ["all", -30, 20],
 }
 
 function parseClothes(text){
+  text = text.toLowerCase();
   var color, description, article;
   var parsedText = text.split(" ");
     if (colorQualifiers.indexOf(parsedText[0]) > -1)
