@@ -100,6 +100,8 @@ function onIntent(intentRequest, session, callback) {
         handleDressMeDescription(intent, session, callback);
     } else if ("AddClothes" === intentName) {
         handleAddClothes(intent, session, callback);
+    } else if ("ListAllClothes" === intentName) {
+        handleListAllClothes(intent, session, callback);
     } else if ("AMAZON.HelpIntent" === intentName) {
         getWelcomeResponse(callback);
     } else {
@@ -273,11 +275,35 @@ function handleDressMe(situation, description, intent, session, callback) {
          buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
 }
 
+function handleListAllClothes(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "";
+
+    var l = sessionAttributes.clothes.count;
+    if (l == 0) {
+        for (var i = 0; i < l; i++) {
+            var clothes = sessionAttributes.clothes[i];
+            speechOutput += (i+1) + " " + clothes + ". ";
+        }
+    } else {
+        speechOutput = "I don't any of your clothes.";
+    }
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
 function handleAddClothes(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
     var shouldEndSession = false;
     var speechOutput = "I have added your clothes";
+
+    sessionAttributes.clothes.push(intent.slots.Clothes.value);
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
     // If the user does not respond or says something that is not understood, the session
@@ -287,14 +313,17 @@ function handleAddClothes(intent, session, callback) {
 }
 
 function getSessionAttributes(session) {
-  var attributes = session.attributes;
-  if (!attributes) {
-      attributes = {};
-  }
-  if (typeof attributes.info === "undefined") {
-    attributes.info = {};
-  }
-  return attributes;
+    var attributes = session.attributes;
+    if (!attributes) {
+        attributes = {};
+    }
+    if (typeof attributes.info === "undefined") {
+        attributes.info = {};
+    }
+    if (typeof attributes.clothes === "undefined") {
+        attributes.clothes = [];
+    }
+    return attributes;
 }
 
 // --------------- Helpers that build all of the responses -----------------------
