@@ -78,10 +78,16 @@ function onIntent(intentRequest, session, callback) {
         intentName = intentRequest.intent.name;
 
     // Dispatch to your skill's intent handlers
-    if ("MyColorIsIntent" === intentName) {
-        setColorInSession(intent, session, callback);
-    } else if ("WhatsMyColorIntent" === intentName) {
-        getColorFromSession(intent, session, callback);
+    if ("SetFavoriteColor" === intentName) {
+        handleSetFavoriteColor(intent, session, callback);
+    } else if ("SetName" === intentName) {
+        handleSetName(intent, session, callback);
+    } else if ("GetSelfInfo" === intentName) {
+        handleGetSelfInfo(intent, session, callback);
+    } else if ("DressMeSituation" === intentName) {
+        handleDressMeSituation(intent, session, callback);
+    }else if ("DressMeDescription" === intentName) {
+        handleDressMeDescription(intent, session, callback);
     } else if ("AMAZON.HelpIntent" === intentName) {
         getWelcomeResponse(callback);
     } else {
@@ -105,8 +111,8 @@ function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     var sessionAttributes = {};
     var cardTitle = "Welcome";
-    var speechOutput = "Welcome to the Alexa Skills Kit sample. " +
-        "Please tell me your favorite color by saying, my favorite color is red";
+    var speechOutput = "Hello, I am your stylist. " +
+        "Please tell me your name and favorite color";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
     var repromptText = "Please tell me your favorite color by saying, " +
@@ -120,20 +126,23 @@ function getWelcomeResponse(callback) {
 /**
  * Sets the color in the session and prepares the speech to reply to the user.
  */
-function setColorInSession(intent, session, callback) {
+function handleSetFavoriteColor(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
     var cardTitle = intent.name;
     var favoriteColorSlot = intent.slots.Color;
     var repromptText = "";
-    var sessionAttributes = {};
     var shouldEndSession = false;
     var speechOutput = "";
 
     if (favoriteColorSlot) {
-        var favoriteColor = favoriteColorSlot.value;
-        sessionAttributes = createFavoriteColorAttributes(favoriteColor);
-        speechOutput = "I now know your favorite color is " + favoriteColor + ". You can ask me " +
-            "your favorite color by saying, what's my favorite color?";
-        repromptText = "You can ask me your favorite color by saying, what's my favorite color?";
+        sessionAttributes.info.color = favoriteColorSlot.value;
+        if (sessionAttributes.info.name) {
+          speechOutput = "Say Dress me or add new clothes";
+          repromptText = "Add clothes";
+        } else {
+          speechOutput = "What is your name";
+          repromptText = "You can tell me your name by saying, my name is Edward";
+        }
     } else {
         speechOutput = "I'm not sure what your favorite color is. Please try again";
         repromptText = "I'm not sure what your favorite color is. You can tell me your " +
@@ -144,29 +153,58 @@ function setColorInSession(intent, session, callback) {
          buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
 }
 
-function createFavoriteColorAttributes(favoriteColor) {
-    return {
-        favoriteColor: favoriteColor
-    };
+function handleSetName(intent, session, callback) {
+    console.log("LOL-1");
+    var sessionAttributes = getSessionAttributes(session);
+    console.log(sessionAttributes);
+    var cardTitle = intent.name;
+    var nameSlot = intent.slots.Name;
+    var repromptText = "";
+    var shouldEndSession = false;
+    var speechOutput = "";
+    console.log(nameSlot);
+    if (nameSlot) {
+        sessionAttributes.info.name = nameSlot.value;
+        if (sessionAttributes.info.color) {
+          speechOutput = "Say Dress me or add new clothes";
+          repromptText = "Add clothes";
+        } else {
+          speechOutput = "What is your favorite color?";
+          repromptText = "You can tell me your " +
+              "favorite color by saying, my favorite color is red";
+        }
+    } else {
+        speechOutput = "I'm not sure what your favorite color is. Please try again";
+        repromptText = "I'm not sure what your favorite color is. You can tell me your " +
+            "favorite color by saying, my favorite color is red";
+    }
+
+    callback(sessionAttributes,
+         buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
 }
 
-function getColorFromSession(intent, session, callback) {
-    var favoriteColor;
+function handleGetSelfInfo(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
     var repromptText = null;
-    var sessionAttributes = {};
     var shouldEndSession = false;
     var speechOutput = "";
 
-    if (session.attributes) {
-        favoriteColor = session.attributes.favoriteColor;
+    var favoriteColor, name;
+    if (sessionAttributes) {
+        favoriteColor = sessionAttributes.info.color;
+        name = sessionAttributes.info.name;
+    }
+
+    if (name) {
+      speechOutput += "Hello, " + name + "!";
     }
 
     if (favoriteColor) {
-        speechOutput = "Your favorite color is " + favoriteColor + ". Goodbye.";
-        shouldEndSession = true;
-    } else {
-        speechOutput = "I'm not sure what your favorite color is, you can say, my favorite color " +
-            " is red";
+      speechOutput += "Your favorite color is " + favoriteColor + "."
+    }
+
+    if (speechOutput === "") {
+      speechOutput = "I don't know much about you. Tell me about yourself. What is your favorite color?"
     }
 
     // Setting repromptText to null signifies that we do not want to reprompt the user.
@@ -174,6 +212,44 @@ function getColorFromSession(intent, session, callback) {
     // will end.
     callback(sessionAttributes,
          buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
+function handleDressMeSituation(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "It’s 22 degrees outside. Wear your white H&M tank top and your brown Banana Republic shorts.";
+
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
+function handleDressMeDescription(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    var speechOutput = "It’s 22 degrees outside. Wear your white H&M tank top and your brown Banana Republic shorts.";
+
+    // Setting repromptText to null signifies that we do not want to reprompt the user.
+    // If the user does not respond or says something that is not understood, the session
+    // will end.
+    callback(sessionAttributes,
+         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
+
+
+function getSessionAttributes(session) {
+  var attributes = session.attributes;
+  if (!attributes) {
+      attributes = {};
+  }
+  if (typeof attributes.info === "undefined") {
+    attributes.info = {};
+  }
+  return attributes;
 }
 
 // --------------- Helpers that build all of the responses -----------------------
@@ -206,4 +282,3 @@ function buildResponse(sessionAttributes, speechletResponse) {
         response: speechletResponse
     };
 }
-
