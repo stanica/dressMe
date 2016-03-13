@@ -52,7 +52,29 @@ function onIntent(intentRequest, session, callback) {
     session.attributes.expectedIntent = session.attributes.nextIntent;
     session.attributes.nextIntent = null;
 
-    switch (intentRequest.intent.name) {
+    lastIntent = session.attributes.lastIntentHolder;
+    session.attributes.lastIntent = lastIntent;
+    session.attributes.lastIntentHolder = intentName;
+
+    switch (intentName) {
+        case "PositiveIntent":
+            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
+            handleDressMeReflectIntent("positive", intent, session, callback);
+            }
+            break;
+
+        case "NegativeIntent":
+            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
+                handleDressMeReflectIntent("negative", intent, session, callback);
+            }
+            break;
+
+        case "SkipIntent":
+            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
+                handleDressMeReflectIntent("skip", intent, session, callback);
+            }
+            break;
+
         case "RandomIntent":
             handleRandomIntent(intent, session, callback);
             break;
@@ -245,6 +267,24 @@ function findCombination(result, out, intent, session, callback) {
     });
 }
 
+function handleDressMeReflectIntent(reflect, intent, session, callback) {
+    //reflect: positive, negative, skip
+
+    var sessionAttributes = getSessionAttributes(session);
+    var cardTitle         = intent.name;
+    var speechOutput      = reflect;
+    var repromptText      = "";
+    var shouldEndSession  = false;
+    var randomIntent      = intent.slots.Intent
+
+    callback(
+        sessionAttributes,
+        buildSpeechletResponse(
+            cardTitle, speechOutput, repromptText, shouldEndSession
+        )
+    );
+
+}
 /*
  * Main DressMe handler
  */
