@@ -15,6 +15,7 @@ var conn  = mysql.createConnection({
 exports.handler = function (event, context) {
     try {
         var callback = function (sessionAttributes, speechletResponse) {
+            conn.end();
             context.succeed(
                 buildResponse(sessionAttributes, speechletResponse)
             );
@@ -326,7 +327,7 @@ function findCombination(result, out, intent, session, callback) {
 
 function handleDressMeReflectIntent(reflect, intent, session, callback) {
     //reflect: positive, negative, skip
-
+    console.log("LOL");
     var sessionAttributes = getSessionAttributes(session);
     var cardTitle         = intent.name;
     var speechOutput      = reflect;
