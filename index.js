@@ -1,14 +1,10 @@
-var postgres = require('pg');
-var pg       = new postgres.Client({
+var mysql = require('mysql');
+var conn  = mysql.createConnection({
     user:     'root',
     password: 'trescommas',
     database: 'dress_me',
-    host:     'dress-me.chieibkxkucz.us-east-1.rds.amazonaws.com',
-    port:     5432
-});
-
-pg.connect(function(err) {
-    if (err) console.log(err);
+    host:     'stylist.chieibkxkucz.us-east-1.rds.amazonaws.com',
+    port:     3306
 });
 
 /*
@@ -18,10 +14,15 @@ pg.connect(function(err) {
 exports.handler = function (event, context) {
     try {
         var callback = function (sessionAttributes, speechletResponse) {
+            conn.end();
             context.succeed(
                 buildResponse(sessionAttributes, speechletResponse)
             );
         };
+
+        conn.connect(function(err) {
+            if (err) throw err;
+        });
 
         /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
              context.fail("Invalid Application ID");
@@ -229,13 +230,10 @@ function findCombination(result, intent, session, callback) {
  * Main DressMe handler
  */
 function handleDressMe(situation, description, intent, session, callback) {
-    var q = "SELECT * FROM bottoms OFFSET floor(random() * (SELECT COUNT(*) FROM bottoms)) LIMIT 1;"
-    var resp = pg.query(q);
-
-    resp.on('err', function(err) {
-        throw err;
-    }).on('row', function(row) {
-        findCombination(row, intent, session, callback);
+    var q = "SELECT * FROM tops;"
+    var resp = conn.query(q, function(err, rows, fields) {
+        if (err) throw err;
+        findCombination(rows[0], intent, session, callback);
     });
 }
 
@@ -420,3 +418,4 @@ function parseClothes(text){
     'article': article
   }
 }
+
