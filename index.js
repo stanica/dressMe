@@ -256,10 +256,7 @@ function getTemperature(callback) {
 }
 
 function getSessionAttributes(session) {
-    var attributes = session.attributes;
-    if (typeof attributes === "undefined") attributes = {};
-    if (typeof attributes.lastcombo === "undefined") attributes.lastcombo = {};
-    return attributes;
+    return {};
 }
 
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
