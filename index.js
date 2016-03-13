@@ -260,7 +260,12 @@ function findCombination(result, out, intent, session, callback) {
 
         var bottom = rows[Math.floor(Math.random() * rows.length)];
         out += " together with your " + bottom.color + " " +
-            bottom.description + " " + bottom.type + ".";
+               bottom.description + " " + bottom.type + ".";
+
+        session.lastcombo = {
+            idTop:    result.id,
+            idBottom: bottom.id
+        };
 
         callback(session,
                  buildSpeechletResponse(intent.name, out, null, false));
@@ -325,7 +330,6 @@ function handleListAllClothes(intent, session, callback) {
 }
 
 function handleAddClothes(intent, session, callback) {
-    var sessionAttributes = getSessionAttributes(session);
     var parsed            = parseClothes(intent.slots.Clothes.value);
     var details           = clothes[parsed.article];
     var fullbody          = false;
@@ -344,7 +348,6 @@ function handleAddClothes(intent, session, callback) {
 
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
-        sessionAttributes.clothes.push(intent.slots.Clothes.value);
         callback(sessionAttributes,
                  buildSpeechletResponse(intent.name, "", null, false));
         });
@@ -380,7 +383,7 @@ function getSessionAttributes(session) {
     var attributes = session.attributes;
     if (!attributes) attributes = {};
     if (typeof attributes.info === "undefined") attributes.info = {};
-    if (typeof attributes.clothes === "undefined") attributes.clothes = [];
+    if (typeof attributes.lastcombo === "undefined") attributes.lastcombo = {};
     return attributes;
 }
 
