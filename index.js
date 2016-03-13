@@ -21,29 +21,23 @@ exports.handler = function (event, context) {
             );
         };
 
-        conn.connect(function(error){
+        /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
+             context.fail("Invalid Application ID");
+        }*/
 
-            if (error !== null){
-                console.log(error);
-                context.fail(error);
-            }
-            /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-                 context.fail("Invalid Application ID");
-            }*/
+        if (event.request.type === "LaunchRequest") {
+            getWelcomeResponse(callback);
+        }
 
-            if (event.request.type === "LaunchRequest") {
-                getWelcomeResponse(callback);
-            }
+        if (event.request.type === "IntentRequest") {
+            onIntent(event.request, event.session, callback)
+        }
 
-            if (event.request.type === "IntentRequest") {
-                onIntent(event.request, event.session, callback)
-            }
+        if (event.request.type === "SessionEndedRequest") {
+            console.log("test-2");
+            context.succeed();
+        }
 
-            if (event.request.type === "SessionEndedRequest") {
-                console.log("test-2");
-                context.succeed();
-            }
-        });
     } catch (err) {
         console.log("test-3");
         context.fail(err);
@@ -394,6 +388,7 @@ function handleListAllClothes(intent, session, callback) {
 }
 
 function handleAddClothes(intent, session, callback) {
+    sessionAttributes = getSessionAttributes(session);
     var parsed            = parseClothes(intent.slots.Clothes.value);
     var details           = clothes[parsed.article];
     var fullbody          = false;
@@ -413,7 +408,7 @@ function handleAddClothes(intent, session, callback) {
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
         callback(sessionAttributes,
-                 buildSpeechletResponse(intent.name, "", null, false));
+                 buildSpeechletResponse(intent.name, "Got it", null, false));
         });
 }
 
