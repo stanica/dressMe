@@ -216,7 +216,10 @@ function findCombination(result, out, intent, session, callback) {
     out += "your " + result.color + " " + result.description + " " +
            result.type;
 
-    if (result.fullbody) return out + ".";
+    if (result.fullbody) {
+        callback(session,
+                 buildSpeechletResponse(intent.name, out, null, false));
+    }
 
     var q = "SELECT * FROM bottoms;";
     conn.query(q, function(err, rows, fields) {
