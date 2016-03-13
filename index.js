@@ -14,7 +14,7 @@ var conn  = mysql.createConnection({
  */
 exports.handler = function (event, context) {
     try {
-        var callback = function (sessionAttributes, speechletResponse) 
+        var callback = function (sessionAttributes, speechletResponse) {
             context.succeed(
                 buildResponse(sessionAttributes, speechletResponse)
             );
@@ -254,36 +254,73 @@ function findCombination(result, out, intent, session, callback) {
 
         var q = "SELECT * FROM bottoms;";
         var rows = [];
-        conn.query(q, function(err, rows, fields) {
-            if (err) {
-                console.log(err);
-                 throw err;
-             }
+        var error = [""];
 
-            if (result.combination && result.combination != "{}") {
-                json = JSON.parse(result.combination);
-                for (var i = 0; i < rows.length; i++) {
-                    if (json[rows[i].id]) {
-                        for (var j = 0; j < json[rows[i].id]; j++) {
-                            rows.push(rows[i].id);
+        conn.query(q).on('error', function(err){
+            error[0] = err;
+        }).on('result', function(row) {
+            rows.push(row);
+        }).on('end', function() {
+            if (error[0] !== "") {
+                var err = error[0];
+                console.log(err);
+                callback(session,
+                         buildSpeechletResponse(intent.name, "Error", null, false));
+            } else {
+                if (result.combination && result.combination != "{}") {
+                    json = JSON.parse(result.combination);
+                    for (var i = 0; i < rows.length; i++) {
+                        if (json[rows[i].id]) {
+                            for (var j = 0; j < json[rows[i].id]; j++) {
+                                rows.push(rows[i].id);
+                            }
                         }
                     }
                 }
+
+                var bottom = rows[Math.floor(Math.random() * rows.length)];
+                out += " together with your " + bottom.color + " " +
+                       bottom.description + " " + bottom.type + ".";
+
+                session.lastcombo = {
+                    idTop:    result.id,
+                    idBottom: bottom.id
+                };
+
+                callback(session,
+                         buildSpeechletResponse(intent.name, out, null, false));
             }
-
-
-        var bottom = rows[Math.floor(Math.random() * rows.length)];
-        out += " together with your " + bottom.color + " " +
-               bottom.description + " " + bottom.type + ".";
-
-        session.lastcombo = {
-            idTop:    result.id,
-            idBottom: bottom.id
-        };
-
-            callback(session,
-                     buildSpeechletResponse(intent.name, out, null, false));
         });
+        // conn.query(q, function(err, rows, fields) {
+        //     if (err) {
+        //         console.log(err);
+        //          throw err;
+        //      }
+        //
+        //     if (result.combination && result.combination != "{}") {
+        //         json = JSON.parse(result.combination);
+        //         for (var i = 0; i < rows.length; i++) {
+        //             if (json[rows[i].id]) {
+        //                 for (var j = 0; j < json[rows[i].id]; j++) {
+        //                     rows.push(rows[i].id);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        //
+        //     var bottom = rows[Math.floor(Math.random() * rows.length)];
+        //     out += " together with your " + bottom.color + " " +
+        //            bottom.description + " " + bottom.type + ".";
+        //
+        //     session.lastcombo = {
+        //         idTop:    result.id,
+        //         idBottom: bottom.id
+        //     }
+        //
+        //     callback(session,
+        //              buildSpeechletResponse(intent.name, out, null, false));
+        // });
     }
 }
 
