@@ -18,9 +18,9 @@ function addClothes(intent, session, cb) {
     var details  = lookup.clothes[parsed.article];
     var fullbody = false;
 
-    if (parsed.article === "all") {
-        fullbody       = true;
-        parsed.article = "tops";
+    if (details[0] === "all") {
+        fullbody   = true;
+        details[0] = "tops";
     }
 
     var q = "INSERT INTO " + details[0] + " (" +
