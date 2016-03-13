@@ -67,20 +67,28 @@ function onIntent(intentRequest, session, callback) {
 
     switch (intentName) {
         case "PositiveIntent":
-            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
-            handleDressMeReflectIntent("positive", intent, session, callback);
+            if (["DressMeDefault", "DressMeSituation", "DressMeDescription"].indexOf(lastIntent) > -1) {
+                console.log('a');
+                handleDressMeReflectIntent("positive", intent, session, callback);
+            } else {
+                console.log('b');
+                getWelcomeResponse(callback);
             }
             break;
 
         case "NegativeIntent":
-            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
+            if (["DressMeDefault", "DressMeSituation", "DressMeDescription"].indexOf(lastIntent) > -1) {
                 handleDressMeReflectIntent("negative", intent, session, callback);
+            } else {
+                getWelcomeResponse(callback);
             }
             break;
 
         case "SkipIntent":
-            if (lastIntent in ["DressMeDefault", "DressMeSituation", "DressMeSituation"]) {
+            if (["DressMeDefault", "DressMeSituation", "DressMeDescription"].indexOf(lastIntent) > -1) {
                 handleDressMeReflectIntent("skip", intent, session, callback);
+            } else {
+                getWelcomeResponse(callback);
             }
             break;
 
