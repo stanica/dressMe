@@ -283,19 +283,28 @@ function handleListAllClothes(intent, session, callback) {
 
 function handleAddClothes(intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
-    var repromptText = null;
-    var shouldEndSession = false;
-    var parsedClothesInfo = parseClothes(intent.slots.Clothes.value);
+    var parsed            = parseClothes(intent.slots.Clothes.value);
+    var details           = clothes[parsed.article];
+    var fullbody          = false;
 
-    var speechOutput = "I have added your clothes. Color is " +
-        parsedClothesInfo.color + ". Article type is " + parsedClothesInfo.article +
-        ". Description is " + parsedClothesInfo.description.join(" ") + ".";
-    sessionAttributes.clothes.push(intent.slots.Clothes.value);
-    // Setting repromptText to null signifies that we do not want to reprompt the user.
-    // If the user does not respond or says something that is not understood, the session
-    // will end.
-    callback(sessionAttributes,
-         buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+    if (parsed.article === "all") {
+        fullbody       = true;
+        parsed.article = "tops";
+    }
+
+    var q = "INSERT INTO " + details[0] + " (" +
+            "id, description, type, color, min_temp, max_temp, fullbody, " +
+            "style) VALUES (0, \"" + parsed.description.join(" ") + "\", \"" +
+            parsed.article + "\", \"" + parsed.color + "\", " +
+            details[1] + ", " + details[2] + ", " + fullbody + ", " +
+            "\"casual\");";
+
+    conn.query(q, function(err, rows, fields) {
+        if (err) throw err;
+        sessionAttributes.clothes.push(intent.slots.Clothes.value);
+        callback(sessionAttributes,
+                 buildSpeechletResponse(intent.name, "", null, false));
+        });
 }
 
 function handleGetTemperature(intent, session, callback) {
@@ -366,52 +375,52 @@ var colorQualifiers = ["light", "dark", "pale"];
 
 var clothes = {
     //top
-    'tank top': ["top",  20, 45],
-    't shirt': ["top", 20, 45],
-    'tee': ["top", 20, 45],
-    'shirt':["top", 20, 45],
-    'long sleeves shirt': ["top", 10, 20],
-    'long sleeve shirt': ["top", 10, 20],
-    'long sleeved shirt': ["top", 10, 20],
-    'long sleeve dress shirt': ["top", 10, 20],
-    'long sleeves dress shirt': ["top", 10, 20],
-    'long sleeved dress shirt': ["top", 10, 20],
-    'blouse': ["top", 10, 20],
-    'sweater': ["top", 0, 10],
-    'sweatshirt': ["top", 10, 20],
-    'dress shirt': ["top", "formal", -30, 20],
-    'dress T shirt': ["top", 20, 45],
-    'polo': ["top", 20, 45],
-    'crop top': ["top", 20, 45],
-    'halter top': ["top", 20, 45],
-    'tube top': ["top", 20, 45],
-    'sports bra': ["top", 30, 45],
+    'tank top': ["tops",  20, 45],
+    't shirt': ["tops", 20, 45],
+    'tee': ["tops", 20, 45],
+    'shirt':["tops", 20, 45],
+    'long sleeves shirt': ["tops", 10, 20],
+    'long sleeve shirt': ["tops", 10, 20],
+    'long sleeved shirt': ["tops", 10, 20],
+    'long sleeve dress shirt': ["tops", 10, 20],
+    'long sleeves dress shirt': ["tops", 10, 20],
+    'long sleeved dress shirt': ["tops", 10, 20],
+    'blouse': ["tops", 10, 20],
+    'sweater': ["tops", 0, 10],
+    'sweatshirt': ["tops", 10, 20],
+    'dress shirt': ["tops", -30, 20],
+    'dress T shirt': ["tops", 20, 45],
+    'polo': ["tops", 20, 45],
+    'crop top': ["tops", 20, 45],
+    'halter top': ["tops", 20, 45],
+    'tube top': ["tops", 20, 45],
+    'sports bra': ["tops", 30, 45],
 
     //layer1
-    'sweater': ["top", "semi-formal", 0, 10],
-    'poncho': ["top", "casual", 30, 45],
-    'sweater vest': ["top", "semi formal", 10, 20],
-    'vest': ["top", "formal", 10, 20],
-    'cardigan': ["top", "semi-formal", 0, 20],
+    'sweater': ["layers", 0, 10],
+    'poncho': ["layers", 30, 45],
+    'sweater vest': ["layers", 10, 20],
+    'vest': ["layers", 10, 20],
+    'cardigan': ["layers", 0, 20],
 
     //bottom
-    'jeans': ["bottom", -30, 20],
-    'mini skirt': ["bottom", 20, 30],
-    'skirt': ["bottom", 10, 20],
-    'pants': ["bottom", -30, 20],
-    'trousers': ["bottom", -30, 20],
-    'slacks': ["bottom", 0, 20],
-    'shorts': ["bottom", 20, 45],
-    'dress pants': ["bottom", 0, 20],
-    'capri pants': ["bottom", 0, 20],
-    'overalls': ["bottom", -30, 0],
-    'yoga pants': ["bottom", 10, 20],
-    'leather pants': ["bottom", 0, 10],
-    'snow pants': ["bottom", -30, -20],
-    'track pants': ["bottom", 10, 30],
-    'dress pants': ["bottom", -10, 30],
-    'sweatpants': ["bottom", 10, 30],
-    'sweats': ["bottom", 10, 30],
+    'jeans': ["bottoms", -30, 20],
+    'mini skirt': ["bottoms", 20, 30],
+    'skirt': ["bottoms", 10, 20],
+    'pants': ["bottoms", -30, 20],
+    'trousers': ["bottoms", -30, 20],
+    'slacks': ["bottoms", 0, 20],
+    'shorts': ["bottoms", 20, 45],
+    'dress pants': ["bottoms", 0, 20],
+    'capri pants': ["bottoms", 0, 20],
+    'overalls': ["bottoms", -30, 0],
+    'yoga pants': ["bottoms", 10, 20],
+    'leather pants': ["bottoms", 0, 10],
+    'snow pants': ["bottoms", -30, -20],
+    'track pants': ["bottoms", 10, 30],
+    'dress pants': ["bottoms", -10, 30],
+    'sweatpants': ["bottoms", 10, 30],
+    'sweats': ["bottoms", 10, 30],
 
     //all
     'dress': ["all", -20, 20],
