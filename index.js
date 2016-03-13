@@ -27,8 +27,8 @@ function addClothes(intent, session, cb) {
             "id, description, type, color, min_temp, max_temp, fullbody, " +
             "style) VALUES (0, \"" + parsed.description.join(" ") + "\", \"" +
             parsed.article + "\", \"" + parsed.color + "\", " +
-            details[1] + ", " + details[2] + ", " + fullbody + ", " +
-            "\"casual\");";
+            details[2] + ", " + details[3] + ", " + fullbody + ", " +
+            "\"" + details[1] + "\");";
 
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
