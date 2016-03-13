@@ -21,31 +21,23 @@ exports.handler = function (event, context) {
             );
         };
 
-        conn.connect(function(err) {
-            if (err === null) {
-                /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-                     context.fail("Invalid Application ID");
-                }*/
+        /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
+             context.fail("Invalid Application ID");
+        }*/
 
-                if (event.request.type === "LaunchRequest") {
-                    getWelcomeResponse(callback);
-                }
+        if (event.request.type === "LaunchRequest") {
+            getWelcomeResponse(callback);
+        }
 
-                if (event.request.type === "IntentRequest") {
-                    onIntent(event.request, event.session, callback)
-                }
+        if (event.request.type === "IntentRequest") {
+            onIntent(event.request, event.session, callback)
+        }
 
-                if (event.request.type === "SessionEndedRequest") {
-                    context.succeed();
-                }
-            } else {
-                console.log(err);
-                context.fail(err);
-            }
-        });
-    } catch (e) {
-        console.log(e);
-        context.fail(e);
+        if (event.request.type === "SessionEndedRequest") {
+            context.succeed();
+        }
+    } catch (err) {
+        context.fail(err);
     }
 };
 
@@ -220,13 +212,13 @@ function getSelfInfo(intent, session, callback) {
 /*
  * Main algorithm, markov chain and stuff...
  */
-function findCombination(result) {
-    var out = "your " + result.color + " " + result.description + " " +
-               result.type;
+function findCombination(result, out, intent, session, callback) {
+    out += "your " + result.color + " " + result.description + " " +
+           result.type;
 
     if (result.fullbody) return out + ".";
 
-    var q    = "SELECT * FROM bottoms;";
+    var q = "SELECT * FROM bottoms;";
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
 
@@ -242,8 +234,11 @@ function findCombination(result) {
         }
 
         var bottom = rows[Math.floor(Math.random() * rows.length)];
-        return out + " together with your " + bottom.color + " " +
-               bottom.description + " " + bottom.description + ".";
+        out += " together with your " + bottom.color + " " +
+            bottom.description + " " + bottom.type + ".";
+
+        callback(session,
+                 buildSpeechletResponse(intent.name, out, null, false));
     });
 }
 
@@ -259,14 +254,8 @@ function handleDressMe(situation, description, intent, session, callback) {
     var q = "SELECT * FROM tops ORDER BY RAND() LIMIT 1;"
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
-        speechOutput += findCombination(rows[0]);
-
-        callback(
-            sessionAttributes,
-            buildSpeechletResponse(
-                intent.name, speechOutput, repromptText, shouldEndSession
-            )
-        );
+        findCombination(rows[0], speechOutput, intent, sessionAttributes,
+                        callback);
     });
 }
 
