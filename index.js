@@ -16,27 +16,37 @@ exports.handler = function (event, context) {
     try {
         var callback = function (sessionAttributes, speechletResponse) {
             conn.end();
+            console.log("test-1");
             context.succeed(
                 buildResponse(sessionAttributes, speechletResponse)
             );
         };
 
-        /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-             context.fail("Invalid Application ID");
-        }*/
+        conn.connect(function(error){
 
-        if (event.request.type === "LaunchRequest") {
-            getWelcomeResponse(callback);
-        }
+            if (error !== null){
+                console.log(error);
+                context.fail(error);
+            }
+            /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
+                 context.fail("Invalid Application ID");
+            }*/
 
-        if (event.request.type === "IntentRequest") {
-            onIntent(event.request, event.session, callback)
-        }
+            if (event.request.type === "LaunchRequest") {
+                getWelcomeResponse(callback);
+            }
 
-        if (event.request.type === "SessionEndedRequest") {
-            context.succeed();
-        }
+            if (event.request.type === "IntentRequest") {
+                onIntent(event.request, event.session, callback)
+            }
+
+            if (event.request.type === "SessionEndedRequest") {
+                console.log("test-2");
+                context.succeed();
+            }
+        });
     } catch (err) {
+        console.log("test-3");
         context.fail(err);
     }
 };
@@ -235,36 +245,42 @@ function getSelfInfo(intent, session, callback) {
  * Main algorithm, markov chain and stuff...
  */
 function findCombination(result, out, intent, session, callback) {
+    console.log("combination");
     out += "your " + result.color + " " + result.description + " " +
            result.type;
 
     if (result.fullbody) {
         callback(session,
                  buildSpeechletResponse(intent.name, out, null, false));
-    }
+    } else {
 
-    var q = "SELECT * FROM bottoms;";
-    conn.query(q, function(err, rows, fields) {
-        if (err) throw err;
+        var q = "SELECT * FROM bottoms;";
+        var rows = [];
+        conn.query(q, function(err, rows, fields) {
+            if (err) {
+                console.log(err);
+                 throw err;
+             }
 
-        if (result.combination && result.combination != "{}") {
-            json = JSON.parse(result.combination);
-            for (var i = 0; i < rows.length; i++) {
-                if (json[rows[i].id]) {
-                    for (var j = 0; j < json[rows[i].id]; j++) {
-                        rows.push(rows[i].id);
+            if (result.combination && result.combination != "{}") {
+                json = JSON.parse(result.combination);
+                for (var i = 0; i < rows.length; i++) {
+                    if (json[rows[i].id]) {
+                        for (var j = 0; j < json[rows[i].id]; j++) {
+                            rows.push(rows[i].id);
+                        }
                     }
                 }
             }
-        }
 
-        var bottom = rows[Math.floor(Math.random() * rows.length)];
-        out += " together with your " + bottom.color + " " +
-            bottom.description + " " + bottom.type + ".";
+            var bottom = rows[Math.floor(Math.random() * rows.length)];
+            out += " together with your " + bottom.color + " " +
+                bottom.description + " " + bottom.type + ".";
 
-        callback(session,
-                 buildSpeechletResponse(intent.name, out, null, false));
-    });
+            // callback(session,
+            //          buildSpeechletResponse(intent.name, out, null, false));
+        });
+    }
 }
 
 function handleDressMeReflectIntent(reflect, intent, session, callback) {
@@ -294,9 +310,12 @@ function handleDressMe(situation, description, intent, session, callback) {
     var shouldEndSession  = false;
     var speechOutput      = "What about ";
 
-    var q = "SELECT * FROM tops ORDER BY RAND() LIMIT 1;"
+    var q = "SELECT * FROM tops ORDER BY RAND() LIMIT 1;";
     conn.query(q, function(err, rows, fields) {
-        if (err) throw err;
+        if (err !== null) {
+            console.log(err);
+            throw err;
+        }
         findCombination(rows[0], speechOutput, intent, sessionAttributes,
                         callback);
     });
@@ -378,7 +397,7 @@ function getTemperature(callback) {
 
 function getSessionAttributes(session) {
     var attributes = session.attributes;
-    if (!attributes) attributes = {};
+    if (typeof attributes === "undefined") attributes = {};
     if (typeof attributes.info === "undefined") attributes.info = {};
     if (typeof attributes.clothes === "undefined") attributes.clothes = [];
     return attributes;
