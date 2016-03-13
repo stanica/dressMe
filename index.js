@@ -1,3 +1,4 @@
+var http = require('http');
 var mysql = require('mysql');
 var conn  = mysql.createConnection({
     user:     'root',
@@ -21,24 +22,27 @@ exports.handler = function (event, context) {
         };
 
         conn.connect(function(err) {
-            if (err) throw err;
+            if (err === null) {
+                /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
+                     context.fail("Invalid Application ID");
+                }*/
+
+                if (event.request.type === "LaunchRequest") {
+                    getWelcomeResponse(callback);
+                }
+
+                if (event.request.type === "IntentRequest") {
+                    onIntent(event.request, event.session, callback)
+                }
+
+                if (event.request.type === "SessionEndedRequest") {
+                    context.succeed();
+                }
+            } else {
+                console.log(err);
+                context.fail(err);
+            }
         });
-
-        /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-             context.fail("Invalid Application ID");
-        }*/
-
-        if (event.request.type === "LaunchRequest") {
-            getWelcomeResponse(callback);
-        }
-
-        if (event.request.type === "IntentRequest") {
-            onIntent(event.request, event.session, callback)
-        }
-
-        if (event.request.type === "SessionEndedRequest") {
-            context.succeed();
-        }
     } catch (e) {
         console.log(e);
         context.fail(e);
@@ -89,6 +93,10 @@ function onIntent(intentRequest, session, callback) {
 
         case "ListAllClothes":
             handleListAllClothes(intent, session, callback);
+            break;
+
+        case "GetTemperature":
+            handleGetTemperature(intent, session, callback);
             break;
 
         case "AMAZON.HelpIntent":
@@ -274,7 +282,32 @@ function handleAddClothes(intent, session, callback) {
          buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
 }
 
-// --------------- Helper functions -----------------------
+function handleGetTemperature(intent, session, callback) {
+    var sessionAttributes = getSessionAttributes(session);
+    var repromptText = null;
+    var shouldEndSession = false;
+    getTemperature(callback);
+}
+
+ // --------------- Helper functions -----------------------
+
+function getTemperature(callback) {
+    http.get("http://dress-me-api.herokuapp.com/var/temp", function(res){
+        res.on('data', function (temperature) {
+            var speechOutput = "The current temperature is " + temperature + " degrees";
+
+            callback({},
+                 buildSpeechletResponse("Hi", temperature, null, false));
+        });
+    }).on('error', function(){
+        var speechOutput = "I can't get the current temperature";
+
+        callback(sessionAttributes,
+             buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+    });
+
+}
+
 function getSessionAttributes(session) {
     var attributes = session.attributes;
     if (!attributes) attributes = {};
@@ -418,4 +451,3 @@ function parseClothes(text){
     'article': article
   }
 }
-
