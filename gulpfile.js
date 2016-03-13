@@ -9,14 +9,14 @@ var fs = require('fs');
 
 // First we need to clean out the dist folder and remove the compiled zip file.
 gulp.task('clean', function(cb) {
-  return del('./dist',
+  return del('./dist/*',
     del('./dist.zip', cb)
   );
 });
 
 // The js task could be replaced with gulp-coffee as desired.
 gulp.task('js', function() {
-  gulp.src('index.js')
+  gulp.src(['*.js', '!gulpfile.js'])
     .pipe(gulp.dest('dist/'))
 });
 

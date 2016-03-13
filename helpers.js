@@ -1,6 +1,6 @@
-require("./Lookups");
+var lookup = require("./lookups.js");
 
-Helpers.buildResponse = function(sessionAttributes, speechletResponse) {
+exports.response = function(sessionAttributes, speechletResponse) {
     return {
         version: "1.0",
         sessionAttributes: sessionAttributes,
@@ -8,7 +8,7 @@ Helpers.buildResponse = function(sessionAttributes, speechletResponse) {
     };
 };
 
-Helpers.buildSpeechletResponse = function(title, output, repromptText, shouldEndSession) {
+exports.speechlet = function(title, output, repromptText, shouldEndSession) {
     return {
         outputSpeech: {
             type: "PlainText",
@@ -29,7 +29,7 @@ Helpers.buildSpeechletResponse = function(title, output, repromptText, shouldEnd
     };
 };
 
-Helpers.parseClothes = function(text){
+exports.parseClothes = function(text){
     text = text.toLowerCase().replace('.', '');
     var color, description, article;
     var parsedText = text.split(" ");
@@ -44,18 +44,18 @@ Helpers.parseClothes = function(text){
         articleIndex = parsedText.length;
         descriptionIndex = articleIndex;
     }
-    if (colorQualifiers.indexOf(parsedText[colorIndex]) > -1)
+    if (lookup.colorQualifiers.indexOf(parsedText[colorIndex]) > -1)
         color = parsedText[colorIndex] + " "  + parsedText[colorIndex+1];
     else
         color = parsedText[colorIndex];
 
-    if(clothes.hasOwnProperty(parsedText[articleIndex - 4] + " " + parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
+    if(lookup.clothes.hasOwnProperty(parsedText[articleIndex - 4] + " " + parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
         article = parsedText[articleIndex - 4] + " " + parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex- 1];
-    else if(clothes.hasOwnProperty(parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
+    else if(lookup.clothes.hasOwnProperty(parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
         article = parsedText[articleIndex - 3] + " " + parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1];
-    else if(clothes.hasOwnProperty(parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
+    else if(lookup.clothes.hasOwnProperty(parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1]))
         article = parsedText[articleIndex - 2] + " " + parsedText[articleIndex - 1];
-    else if (clothes.hasOwnProperty(parsedText[articleIndex - 1]))
+    else if (lookup.clothes.hasOwnProperty(parsedText[articleIndex - 1]))
         article = parsedText[articleIndex - 1];
     else
         article = "Error";
@@ -72,5 +72,3 @@ Helpers.parseClothes = function(text){
         'article': article
     }
 }
-
-module.exports = Helpers;

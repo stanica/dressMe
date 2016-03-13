@@ -1,6 +1,6 @@
-Lookups.colorQualifiers = ["light", "dark", "pale"];
+exports.colorQualifiers = ["light", "dark", "pale"];
 
-Lookups.clothes = {
+exports.clothes = {
     //top
     'tank top': ["tops",  20, 45],
     't shirt': ["tops", 20, 45],
@@ -58,4 +58,3 @@ Lookups.clothes = {
     'gown': ["all", -30, 20],
 }
 
-module.exports = Lookups;

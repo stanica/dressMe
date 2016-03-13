@@ -1,7 +1,7 @@
-require("./Helpers");
-require("./Lookups");
+var helpers = require("./helpers.js");
+var lookup  = require("./lookups.js");
+var mysql   = require('mysql');
 
-var mysql = require('mysql');
 var conn  = mysql.createConnection({
     user:     'root',
     password: 'trescommas',
@@ -14,8 +14,8 @@ var conn  = mysql.createConnection({
  * Adds clothes to the database
  */
 function addClothes(intent, session, cb) {
-    var parsed   = parseClothes(intent.slots.Clothes.value);
-    var details  = clothes[parsed.article];
+    var parsed   = helpers.parseClothes(intent.slots.Clothes.value);
+    var details  = lookup.clothes[parsed.article];
     var fullbody = false;
 
     if (parsed.article === "all") {
@@ -32,7 +32,7 @@ function addClothes(intent, session, cb) {
 
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
-        cb(session, buildSpeechletResponse(intent.name, "Got it", null, false));
+        cb(session, helpers.speechlet(intent.name, "Got it", null, false));
     });
 }
 
@@ -55,9 +55,10 @@ function findCombination(result, out, intent, session, cb) {
            result.type;
 
     if (result.fullbody) {
-        cb(session, buildSpeechletResponse(intent.name, out, null, false));
+        cb(session, helpers.speechlet(intent.name, out, null, false));
     }
 
+    var q = "SELECT * FROM bottoms;";
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
 
@@ -81,12 +82,12 @@ function findCombination(result, out, intent, session, cb) {
             idBottom: bottom.id
         };
 
-        cb(session, buildSpeechletResponse(intent.name, out, null, false));
-    }
+        cb(session, helpers.speechlet(intent.name, out, null, false));
+    });
 }
 
 function handleAnswers(intent, session, cb) {
-     cb(session, buildSpeechletResponse(intent.name, "Temp", null, false));
+     cb(session, helpers.speechlet(intent.name, "Temp", null, false));
 }
 
 /*
@@ -104,11 +105,13 @@ function handleEvents(event, cb) {
         case "DressMeSituation":
         case "DressMeDescription":
             dressMe(intent, event.session, cb);
+            break
 
         case "PositiveIntent":
         case "NegativeIntent":
         case "SkipIntent":
             handleAnswers(intent, event.session, cb);
+            break;
 
         default:
             throw "Invalid Intent"
@@ -124,7 +127,7 @@ exports.handler = function (event, context) {
 
     try {
         handleEvents(event, function(session, response) {
-            conext.succeed(buildResponse(session.attributes, response));
+            context.succeed(helpers.response(session.attributes, response));
         });
     } catch (err) {
         context.fail(err);
