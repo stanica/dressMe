@@ -1,29 +1,46 @@
 var postgres = require('pg');
-var pg       = new postgres.Client("postgres://root:trescommas@dress-me.chieibkxkucz.us-east-1.rds.amazonaws.com:5432/dress_me");
+var pg       = new postgres.Client({
+    user:     'root',
+    password: 'trescommas',
+    database: 'dress_me',
+    host:     'dress-me.chieibkxkucz.us-east-1.rds.amazonaws.com',
+    port:     5432
+});
+
+pg.connect(function(err) {
+    if (err) console.log(err);
+});
 
 /*
  * Route the incoming request based on type (LaunchRequest, IntentRequest,
  * etc.) The JSON body of the request is provided in the event parameter.
  */
 exports.handler = function (event, context) {
-    var callback = function (sessionAttributes, speechletResponse) {
-        context.succeed(buildResponse(sessionAttributes, speechletResponse));
-    };
+    try {
+        var callback = function (sessionAttributes, speechletResponse) {
+            context.succeed(
+                buildResponse(sessionAttributes, speechletResponse)
+            );
+        };
 
-    /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
-         context.fail("Invalid Application ID");
-    }*/
+        /*if (event.session.application.applicationId !== "amzn1.echo-sdk-ams.app.[unique-value-here]") {
+             context.fail("Invalid Application ID");
+        }*/
 
-    if (event.request.type === "LaunchRequest") {
-        getWelcomeResponse(callback);
-    }
+        if (event.request.type === "LaunchRequest") {
+            getWelcomeResponse(callback);
+        }
 
-    if (event.request.type === "IntentRequest") {
-        onIntent(event.request, event.session, callback)
-    }
+        if (event.request.type === "IntentRequest") {
+            onIntent(event.request, event.session, callback)
+        }
 
-    if (event.request.type === "SessionEndedRequest") {
-        context.succeed();
+        if (event.request.type === "SessionEndedRequest") {
+            context.succeed();
+        }
+    } catch (e) {
+        console.log(e);
+        context.fail(e);
     }
 };
 
@@ -78,7 +95,7 @@ function onIntent(intentRequest, session, callback) {
             break;
 
         default:
-            context.fail("Invalid Intent");
+            throw "Invalid Intent";
     }
 }
 
@@ -194,33 +211,11 @@ function getSelfInfo(intent, session, callback) {
 /*
  * Main algorithm, markov chain and stuff...
  */
-function findCombination(result) {
-    return "Hello World";
-}
-
-/*
- * Main DresMe handler
- */
-function handleDressMe(situation, description, intent, session, callback) {
+function findCombination(result, intent, session, callback) {
     var sessionAttributes = getSessionAttributes(session);
     var repromptText      = null;
     var shouldEndSession  = false;
-    var speechOutput      = "It is 22 degrees outside. Clothes for " +
-                            situation + " and " + description + " are white " +
-                            "H and M tank top and your brown Banana Republic " +
-                            "shorts.";
-
-    console.log(situation, description);
-
-    pg.connect(conString, function(err) {
-        if (err) context.fail("Database connection failed");
-        pg.query('SELECT * FROM bottoms OFFSET floor(random()*N) LIMIT 1', [],
-                 function(err, result) {
-            if (err) context.fail("SQL query failed");
-            speechOutput = findCombination(result);
-            pg.end();
-        });
-    });
+    var speechOutput      = "Hello, World";
 
     callback(
         sessionAttributes,
@@ -228,6 +223,20 @@ function handleDressMe(situation, description, intent, session, callback) {
             intent.name, speechOutput, repromptText, shouldEndSession
         )
     );
+}
+
+/*
+ * Main DressMe handler
+ */
+function handleDressMe(situation, description, intent, session, callback) {
+    var q = "SELECT * FROM bottoms OFFSET floor(random() * (SELECT COUNT(*) FROM bottoms)) LIMIT 1;"
+    var resp = pg.query(q);
+
+    resp.on('err', function(err) {
+        throw err;
+    }).on('row', function(row) {
+        findCombination(row, intent, session, callback);
+    });
 }
 
 function handleListAllClothes(intent, session, callback) {

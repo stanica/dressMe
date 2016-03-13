@@ -41,7 +41,7 @@ gulp.task('zip', function() {
 // the case if you have installed and configured the AWS CLI.
 //
 // See http://aws.amazon.com/sdk-for-node-js/
-gulp.task('upload', function() {
+gulp.task('upload', ['zip'], function() {
 
   // TODO: This should probably pull from package.json
   AWS.config.region = 'us-east-1';
@@ -79,5 +79,4 @@ gulp.task('upload', function() {
   });
 });
 
-// The key to deploying as a single command is to manage the sequence of events.
-gulp.task('default', ['clean', 'js', 'npm', 'zip', 'upload']);
+gulp.task('default', ['clean', 'js', 'npm']);
