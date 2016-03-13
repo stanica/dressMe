@@ -15,7 +15,6 @@ var conn  = mysql.createConnection({
 exports.handler = function (event, context) {
     try {
         var callback = function (sessionAttributes, speechletResponse) {
-            conn.end();
             context.succeed(
                 buildResponse(sessionAttributes, speechletResponse)
             );
