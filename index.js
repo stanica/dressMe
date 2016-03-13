@@ -37,13 +37,42 @@ function addClothes(intent, session, cb) {
 }
 
 /*
+ * Changes the Markov rating in the database
+ */
+function adjustMarkov(session, value, intent, out, cb) {
+    var q = "SELECT * FROM tops WHERE id=" +
+        session.attributes.lastcombo.idTop + ";";
+    conn.query(q, function(err, rows, fields) {
+        if (err) throw err;
+        if (!rows[0].combination) rows[0].combination = '{}';
+
+        var key = session.attributes.lastcombo.idBottom;
+
+        json = JSON.parse(rows[0].combination);
+        if (!json[key]) json[key] = 0;
+        json[key] += value;
+        if (json[key] < 0) json[key] = 0;
+
+        q = "UPDATE tops SET combination=\"" +
+            conn.escape(JSON.stringify(json)) + "\" WHERE id=" +
+            session.attributes.lastcombo.idTop + ";";
+        conn.query(q, function(err, rows, fields) {
+            if (err) throw err;
+            if (out && cb && intent) {
+                cb(session, helpers.speechlet(intent.name, out, null, false));
+            }
+        });
+    });
+}
+
+/*
  * Generation of an outfit starts here
  */
-function dressMe(intent, session, callback) {
+function dressMe(answer, intent, session, callback) {
     var q = "SELECT * FROM tops ORDER BY RAND() LIMIT 1;";
     conn.query(q, function(err, rows, fields) {
         if (err) throw err;
-        findCombination(rows[0], "What about ", intent, session, callback);
+        findCombination(rows[0], answer, intent, session, callback);
     });
 }
 
@@ -51,11 +80,11 @@ function dressMe(intent, session, callback) {
  * Fancy algorithm, markov chain and stuff...
  */
 function findCombination(result, out, intent, session, cb) {
-    out += "your " + result.color + " " + result.description + " " +
-           result.type;
+    var add = "your " + result.color + " " + result.description + " " +
+              result.type;
 
     if (result.fullbody) {
-        cb(session, helpers.speechlet(intent.name, out, null, false));
+        cb(session, helpers.speechlet(intent.name, out + add, null, false));
     }
 
     var q = "SELECT * FROM bottoms;";
@@ -74,10 +103,18 @@ function findCombination(result, out, intent, session, cb) {
         }
 
         var bottom = rows[Math.floor(Math.random() * rows.length)];
-        out += " together with your " + bottom.color + " " +
+
+        if (!session.attributes.lastcombo) session.attributes.lastcombo = {};
+
+        if (result.id === session.attributes.lastcombo.idTop &&
+            bottom.id === session.attributes.lastcombo.idBottom) {
+            dressMe(out, intent, session, cb)
+        }
+
+        out += add + " together with your " + bottom.color + " " +
                bottom.description + " " + bottom.type + ".";
 
-        session.lastcombo = {
+        session.attributes.lastcombo = {
             idTop:    result.id,
             idBottom: bottom.id
         };
@@ -87,7 +124,35 @@ function findCombination(result, out, intent, session, cb) {
 }
 
 function handleAnswers(intent, session, cb) {
-     cb(session, helpers.speechlet(intent.name, "Temp", null, false));
+    if (session.attributes.lastIntent != "DressMeDefault" &&
+        session.attributes.lastIntent != "DressMeSituation" &&
+        session.attributes.lastIntent != "DressMeDescription" &&
+        session.attributes.lastIntent != "NegativeIntent" &&
+        session.attributes.lastIntent != "SkipIntent") {
+        throw "Unexpected intent"
+    }
+
+    // Default is for skipping
+    var out = "Got it, skipping this one for now. Let's try "
+
+    switch (intent.name) {
+        case "PositiveIntent":
+            out = "I'm glad you like it."
+            adjustMarkov(session, 5, intent, out, cb);
+            break;
+
+        case "NegativeIntent":
+            out = "Ok, I will keep this in mind. Let's try another outfit. " +
+                  "How about ";
+            adjustMarkov(session, -5, null, null, null);
+            break;
+
+        // SkipIntent
+        default:
+            break;
+    }
+
+    dressMe(out, intent, session, cb);
 }
 
 /*
@@ -104,7 +169,7 @@ function handleEvents(event, cb) {
         case "DressMeDefault":
         case "DressMeSituation":
         case "DressMeDescription":
-            dressMe(intent, event.session, cb);
+            dressMe("What about ", intent, event.session, cb);
             break
 
         case "PositiveIntent":
@@ -116,6 +181,9 @@ function handleEvents(event, cb) {
         default:
             throw "Invalid Intent"
     }
+
+    if (!event.session.attributes) event.session.attributes = {};
+    event.session.attributes.lastIntent = intent.name;
 }
 
 /*
@@ -124,7 +192,6 @@ function handleEvents(event, cb) {
  */
 exports.handler = function (event, context) {
     if (event.request.type === "SessionEndedRequest") context.succeed();
-
     try {
         handleEvents(event, function(session, response) {
             context.succeed(helpers.response(session.attributes, response));
